@@ -12,16 +12,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Build with Gradle
-        # سنستخدم gradle الموجود في السحابة مباشرة لبناء المشروع
         run: |
+          # توليد ملفات التشغيل في السحابة
           gradle wrapper
-          ./gradlew assembleDebug
-
+          # محاولة البناء مع عرض تفاصيل الخطأ في حال حدوثه
+          ./gradlew assembleDebug --stacktrace
+        
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: WiFi-Monitor-APK
