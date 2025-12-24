@@ -1,0 +1,105 @@
+package com.example.wifimonitor;
+
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.graphics.Color;
+import android.view.Gravity;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+    private TextView ssidText, ipText, signalText;
+    private Handler handler = new Handler();
+    private Runnable runnable;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // إعداد الواجهة برمجياً (Layout)
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(60, 100, 60, 60);
+        layout.setBackgroundColor(Color.parseColor("#F5F5F5"));
+        layout.setGravity(Gravity.TOP);
+
+        // عنوان التطبيق
+        TextView title = new TextView(this);
+        title.setText("📡 WiFi Monitor Pro");
+        title.setTextSize(28);
+        title.setTextColor(Color.parseColor("#2196F3"));
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 80);
+        layout.addView(title);
+
+        // إنشاء نصوص العرض
+        ssidText = createInfoTextView();
+        ipText = createInfoTextView();
+        signalText = createInfoTextView();
+
+        layout.addView(ssidText);
+        layout.addView(ipText);
+        layout.addView(signalText);
+
+        setContentView(layout);
+
+        // بدء التحديث التلقائي كل ثانية
+        startMonitoring();
+    }
+
+    private TextView createInfoTextView() {
+        TextView tv = new TextView(this);
+        tv.setTextSize(18);
+        tv.setTextColor(Color.DKGRAY);
+        tv.setPadding(20, 20, 20, 20);
+        tv.setBackgroundColor(Color.WHITE);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(0, 10, 0, 10);
+        tv.setLayoutParams(params);
+        return tv;
+    }
+
+    private void startMonitoring() {
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                updateWifiInfo();
+                handler.postDelayed(this, 1000); // تحديث كل 1000 ميلي ثانية (ثانية واحدة)
+            }
+        };
+        handler.post(runnable);
+    }
+
+    private void updateWifiInfo() {
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiInfo info = wifiManager.getConnectionInfo();
+
+        String ssid = info.getSSID();
+        int ip = info.getIpAddress();
+        String ipString = String.format("%d.%d.%d.%d", (ip & 0xff), (ip >> 8 & 0xff), (ip >> 16 & 0xff), (ip >> 24 & 0xff));
+        int rssi = info.getRssi();
+
+        ssidText.setText("Network: " + ssid.replace("\"", ""));
+        ipText.setText("IP Address: " + ipString);
+        signalText.setText("Signal Strength: " + rssi + " dBm");
+
+        // تغيير لون إشارة القوة بناءً على الجودة
+        if (rssi > -50) signalText.setTextColor(Color.GREEN);
+        else if (rssi > -70) signalText.setTextColor(Color.parseColor("#FFA500"));
+        else signalText.setTextColor(Color.RED);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(runnable); // إيقاف التحديث عند إغلاق التطبيق
+    }
+}
+
