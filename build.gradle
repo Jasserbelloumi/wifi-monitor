@@ -1,3 +1,7 @@
-plugins { id 'application' }
-repositories { mavenCentral() }
-application { mainClass = 'com.jasser.security.WiFiMonitorApp' }
+buildscript {
+    repositories { google() ; mavenCentral() }
+    dependencies { classpath 'com.android.tools.build:gradle:8.1.0' }
+}
+allprojects {
+    repositories { google() ; mavenCentral() }
+}
