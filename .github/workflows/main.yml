@@ -1,20 +1,26 @@
-name: Build Android APK
+name: Full Cloud APK Build
 on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: set up JDK 17
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew || true
-      - name: Build APK
-        run: bash ./gradlew assembleDebug
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build with Gradle
+        # سنستخدم gradle الموجود في السحابة مباشرة لبناء المشروع
+        run: |
+          gradle wrapper
+          ./gradlew assembleDebug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
